@@ -11,18 +11,71 @@ public class IndexedLinkedListEntropy {
     
     public static void main(String[] args) {
         Fingers fingers = new Fingers(new Random(SEED));
+        double bestCorrelation = Double.NEGATIVE_INFINITY;
+        double worstCorrelation = Double.POSITIVE_INFINITY;
         
-        for (int i = 0; i < 100; i++) {
-            System.out.println("# Iteration: " + (i + 1));
+        int bestCorrelationIteration = -1;
+        int worstCorrelationIteration = -1;
+        
+        double averageCorrelation = 0.0;
+        double[] correlations = new double[100];
+        
+        for (int i = 1; i <= 100; i++) {
+            System.out.println("# Iteration: " + i);
             List<DataPoint> dataPoints = simulate(fingers);
             Collections.sort(dataPoints);
-            dataPoints.forEach(System.out::println);
-            System.out.println(
-                    "# r = " + pearsonCorrelationCoefficient(dataPoints));
             
-            System.out.println();
+            for (DataPoint dp : dataPoints) {
+                final String str = String.format("%.3f %.3f\n",
+                                                 dp.getEntropy(),
+                                                 dp.getAmortizedWork()).replaceAll(",", ".");
+                System.out.print(str);
+            }
+            
+            final double correlation = 
+                    pearsonCorrelationCoefficient(dataPoints);
+            
+            correlations[i - 1] = correlation;
+            averageCorrelation += correlation;
+            
+            if (bestCorrelation < correlation) {
+                bestCorrelation = correlation;
+                bestCorrelationIteration = i;
+            }
+            
+            if (worstCorrelation > correlation) {
+                worstCorrelation = correlation;
+                worstCorrelationIteration = i;
+            }
+            
+            System.out.printf("# r = %.4f\n\n", correlation);
+            
             fingers.reset();
         }
+        
+        System.out.printf("Best correlation: %f, i = %d.\n",
+                          bestCorrelation, 
+                          bestCorrelationIteration);
+        
+        System.out.printf("Worst correlation: %f, i = %d.\n",
+                          worstCorrelation, 
+                          worstCorrelationIteration);
+        
+        double avg = averageCorrelation / 100.0;
+        double std = computeStdSum(avg, correlations);
+       
+        System.out.printf("Average correlation: %.4f\n", avg);
+        System.out.printf("Correlation Std:     %.4f\n", std);
+    }
+    
+    private static double computeStdSum(double avg, double[] correlations) {
+        double sum = 0.0;
+        
+        for (double c : correlations) {
+            sum += (c - avg) * (c - avg);
+        }
+        
+        return Math.sqrt(sum / correlations.length);
     }
     
     private static List<DataPoint> simulate(Fingers fingers) {
@@ -148,7 +201,7 @@ class Fingers {
             totalWork += Math.abs(closestFingerIndex - targetIndex);
         }
         
-        return new DataPoint(computeEntropy(), totalWork / LIST_SIZE);
+        return new DataPoint(computeEntropy(), 1.0 * totalWork / LIST_SIZE);
     }
     
     private int findClosestFingerIndex(int targetIndex) {
@@ -188,9 +241,9 @@ class Fingers {
 
 class DataPoint implements Comparable<DataPoint> {
     private final double entropy;
-    private final int amortizedWork;
+    private final double amortizedWork;
     
-    DataPoint(double entropy, int amortizedWork) {
+    DataPoint(double entropy, double amortizedWork) {
         this.entropy = entropy;
         this.amortizedWork = amortizedWork;
     }
@@ -205,7 +258,7 @@ class DataPoint implements Comparable<DataPoint> {
         return entropy;
     }
     
-    int getAmortizedWork() {
+    double getAmortizedWork() {
         return amortizedWork;
     }
 
