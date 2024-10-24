@@ -11,11 +11,11 @@ public class IndexedLinkedListEntropy {
     
     public static void main(String[] args) {
         Fingers fingers = new Fingers(new Random(SEED));
-        double bestCorrelation = Double.NEGATIVE_INFINITY;
-        double worstCorrelation = Double.POSITIVE_INFINITY;
+        double hiCorrelation = Double.NEGATIVE_INFINITY;
+        double loCorrelation = Double.POSITIVE_INFINITY;
         
-        int bestCorrelationIteration = -1;
-        int worstCorrelationIteration = -1;
+        int hiCorrelationIteration = -1;
+        int loCorrelationIteration = -1;
         
         double averageCorrelation = 0.0;
         double[] correlations = new double[100];
@@ -26,7 +26,7 @@ public class IndexedLinkedListEntropy {
             Collections.sort(dataPoints);
             
             for (DataPoint dp : dataPoints) {
-                final String str = String.format("%.3f %.3f\n",
+                final String str = String.format("%f %f\n",
                                                  dp.getEntropy(),
                                                  dp.getAmortizedWork()).replaceAll(",", ".");
                 System.out.print(str);
@@ -38,34 +38,34 @@ public class IndexedLinkedListEntropy {
             correlations[i - 1] = correlation;
             averageCorrelation += correlation;
             
-            if (bestCorrelation < correlation) {
-                bestCorrelation = correlation;
-                bestCorrelationIteration = i;
+            if (hiCorrelation < correlation) {
+                hiCorrelation = correlation;
+                hiCorrelationIteration = i;
             }
             
-            if (worstCorrelation > correlation) {
-                worstCorrelation = correlation;
-                worstCorrelationIteration = i;
+            if (loCorrelation > correlation) {
+                loCorrelation = correlation;
+                loCorrelationIteration = i;
             }
             
-            System.out.printf("# r = %.4f\n\n", correlation);
+            System.out.printf("# r = %f\n\n", correlation);
             
             fingers.reset();
         }
         
-        System.out.printf("Best correlation: %f, i = %d.\n",
-                          bestCorrelation, 
-                          bestCorrelationIteration);
+        System.out.printf("# Highest correlation: %f, i = %d.\n",
+                          hiCorrelation, 
+                          hiCorrelationIteration);
         
-        System.out.printf("Worst correlation: %f, i = %d.\n",
-                          worstCorrelation, 
-                          worstCorrelationIteration);
+        System.out.printf("# Lowest correlation: %f, i = %d.\n",
+                          loCorrelation, 
+                          loCorrelationIteration);
         
         double avg = averageCorrelation / 100.0;
         double std = computeStdSum(avg, correlations);
        
-        System.out.printf("Average correlation: %.4f\n", avg);
-        System.out.printf("Correlation Std:     %.4f\n", std);
+        System.out.printf("# Average correlation: %f\n", avg);
+        System.out.printf("# Correlation Std:     %f\n", std);
     }
     
     private static double computeStdSum(double avg, double[] correlations) {
