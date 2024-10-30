@@ -6,7 +6,6 @@ import java.util.Random;
 public class IndexedLinkedListEntropy {
     
     private static final int NUMBER_OF_RUNS = 100;
-    // 1681184501458 -> r = -0.9291
     private static final long SEED = 1681184501458L;
     
     public static void main(String[] args) {
